@@ -1,4 +1,4 @@
-import 'match_index.dart';
+import 'package:fuzzy/bitap/data/match_index.dart';
 
 /// Holds match with its score
 class MatchScore {

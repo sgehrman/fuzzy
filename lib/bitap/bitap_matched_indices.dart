@@ -1,4 +1,4 @@
-import 'data/match_index.dart';
+import 'package:fuzzy/bitap/data/match_index.dart';
 
 /// Retrieve all matched indexes given a mask and minimum length
 List<MatchIndex> matchedIndices(List<int> matchmask, int minMatchCharLength) {
@@ -8,10 +8,12 @@ List<MatchIndex> matchedIndices(List<int> matchmask, int minMatchCharLength) {
   var i = 0;
 
   // Abort if [matchmask] is empty
-  if (matchmask.isEmpty) return matchedIndices;
+  if (matchmask.isEmpty) {
+    return matchedIndices;
+  }
 
-  for (var len = matchmask.length; i < len; i += 1) {
-    var match = matchmask[i];
+  for (final len = matchmask.length; i < len; i += 1) {
+    final match = matchmask[i];
     if (match != 0 && start == -1) {
       start = i;
     } else if (match == 0 && start != -1) {

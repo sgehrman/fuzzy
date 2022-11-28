@@ -1,10 +1,10 @@
-import 'package:latinize/latinize.dart';
-import '../data/fuzzy_options.dart';
-import 'bitap_pattern_alphabet.dart' as pa;
-import 'bitap_search.dart';
-import 'bitap_regex_search.dart';
-import 'data/match_score.dart';
-import 'data/match_index.dart';
+import 'package:fuzzy/bitap/bitap_pattern_alphabet.dart' as pa;
+import 'package:fuzzy/bitap/bitap_regex_search.dart';
+import 'package:fuzzy/bitap/bitap_search.dart';
+import 'package:fuzzy/bitap/data/match_index.dart';
+import 'package:fuzzy/bitap/data/match_score.dart';
+import 'package:fuzzy/data/fuzzy_options.dart';
+import 'package:normalizer/normalizer.dart';
 
 /// The bitap algorithm (also known as the shift-or, shift-and or
 /// Baeza-Yates–Gonnet algorithm) is an approximate string matching algorithm.
@@ -17,17 +17,17 @@ import 'data/match_index.dart';
 /// work with bitwise operations, which are extremely fast.
 class Bitap {
   /// Instantiates a bitap, given options
-  Bitap(String pattern, {required FuzzyOptions options}) : options = options {
+  Bitap(String pattern, {required this.options}) {
     this.pattern = options.isCaseSensitive ? pattern : pattern.toLowerCase();
     this.pattern =
-        options.shouldNormalize ? latinize(this.pattern) : this.pattern;
+        options.shouldNormalize ? this.pattern.normalize() : this.pattern;
     if (pattern.length <= options.maxPatternLength) {
       patternAlphabet = pa.patternAlphabet(this.pattern);
     }
   }
 
   /// Configuration options
-  final FuzzyOptions options;
+  final FuzzyOptions<dynamic> options;
 
   /// The pattern to search for
   late String pattern;
@@ -36,12 +36,14 @@ class Bitap {
   Map<String, int> patternAlphabet = {};
 
   /// Executes a search, given a search string
-  MatchScore search(String text) {
+  MatchScore search(String query) {
+    String text = query;
+
     if (!options.isCaseSensitive) {
       text = text.toLowerCase();
     }
     if (options.shouldNormalize) {
-      text = latinize(text);
+      text = text.normalize();
     }
 
     // Exact match

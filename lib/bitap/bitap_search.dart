@@ -1,8 +1,8 @@
 import 'dart:math';
 
-import 'bitap_matched_indices.dart';
-import 'bitap_score.dart';
-import 'data/match_score.dart';
+import 'package:fuzzy/bitap/bitap_matched_indices.dart';
+import 'package:fuzzy/bitap/bitap_score.dart';
+import 'package:fuzzy/bitap/data/match_score.dart';
 
 /// Executes a bitap search
 MatchScore bitapSearch(
@@ -30,7 +30,6 @@ MatchScore bitapSearch(
   if (bestLocation != -1) {
     final score = bitapScore(
       pattern,
-      errors: 0,
       currentLocation: bestLocation,
       expectedLocation: location,
       distance: distance,
@@ -43,7 +42,6 @@ MatchScore bitapSearch(
     if (bestLocation != -1) {
       final score = bitapScore(
         pattern,
-        errors: 0,
         currentLocation: bestLocation,
         expectedLocation: location,
         distance: distance,
@@ -116,7 +114,7 @@ MatchScore bitapSearch(
         bitArr.replaceRange(j, j + 1, [
           bitArr[j] |
               (((lastBitArr[j + 1] | lastBitArr[j]) << 1) | 1) |
-              lastBitArr[j + 1]
+              lastBitArr[j + 1],
         ]);
       }
 

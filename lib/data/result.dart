@@ -1,5 +1,5 @@
-import '../bitap/bitap.dart';
-import '../bitap/data/match_index.dart';
+import 'package:fuzzy/bitap/bitap.dart';
+import 'package:fuzzy/bitap/data/match_index.dart';
 
 /// Class to hold searchers
 class Searchers {
@@ -61,11 +61,11 @@ class Result<T> {
 class ResultDetails<T> {
   /// Instantiates it
   ResultDetails({
-    this.key = '',
     required this.arrayIndex,
     required this.value,
     required this.score,
     required this.matchedIndices,
+    this.key = '',
     this.nScore = 0,
   });
 

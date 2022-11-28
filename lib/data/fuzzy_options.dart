@@ -1,4 +1,4 @@
-import 'result.dart';
+import 'package:fuzzy/data/result.dart';
 
 /// Represents a weighted getter of an item
 class WeightedKey<T> {
@@ -49,7 +49,7 @@ class FuzzyOptions<T> {
     this.verbose = false,
     this.shouldNormalize = false,
   })  : tokenSeparator =
-            tokenSeparator ?? RegExp(r' +', caseSensitive: isCaseSensitive),
+            tokenSeparator ?? RegExp(' +', caseSensitive: isCaseSensitive),
         keys = _normalizeWeights(keys),
         sortFn = sortFn ?? _defaultSortFn;
 
@@ -112,6 +112,7 @@ class FuzzyOptions<T> {
   final bool shouldNormalize;
 
   /// Copy these options with some modifications.
+  // ignore: long-parameter-list
   FuzzyOptions<T> copyWith({
     int? location,
     int? distance,
@@ -154,16 +155,18 @@ class FuzzyOptions<T> {
       return [];
     }
 
-    var weightSum = keys
+    final weightSum = keys
         .map((key) => key.weight)
         .fold<double>(0, (previousValue, element) => previousValue + element);
 
     return keys
-        .map((key) => WeightedKey<T>(
-              name: key.name,
-              getter: key.getter,
-              weight: key.weight / weightSum,
-            ))
+        .map(
+          (key) => WeightedKey<T>(
+            name: key.name,
+            getter: key.getter,
+            weight: key.weight / weightSum,
+          ),
+        )
         .toList();
   }
 }

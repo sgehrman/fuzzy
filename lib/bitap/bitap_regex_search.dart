@@ -1,16 +1,20 @@
-import 'data/match_index.dart';
-import 'data/match_score.dart';
+import 'package:fuzzy/bitap/data/match_index.dart';
+import 'package:fuzzy/bitap/data/match_score.dart';
 
 /// Pattern to exclude special characters
-final Pattern SPECIAL_CHARS_REGEX =
-    RegExp(r'\[-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]');
+final Pattern specialCharsRegex = RegExp(r'\[-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]');
 
 /// Execute a bitap regex search
 MatchScore bitapRegexSearch(
-    String text, String pattern, Pattern tokenSeparator) {
-  final regex = RegExp(pattern
-      .replaceAll(SPECIAL_CHARS_REGEX, r'\$&')
-      .replaceAll(tokenSeparator, '|'));
+  String text,
+  String pattern,
+  Pattern tokenSeparator,
+) {
+  final regex = RegExp(
+    pattern
+        .replaceAll(specialCharsRegex, r'\$&')
+        .replaceAll(tokenSeparator, '|'),
+  );
   final matches = regex.allMatches(text);
   final isMatch = matches.isNotEmpty;
 

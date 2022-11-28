@@ -2,9 +2,9 @@ library fuzzy;
 
 import 'dart:math';
 
-import 'bitap/bitap.dart';
-import 'data/fuzzy_options.dart';
-import 'data/result.dart';
+import 'package:fuzzy/bitap/bitap.dart';
+import 'package:fuzzy/data/fuzzy_options.dart';
+import 'package:fuzzy/data/result.dart';
 
 export 'data/fuzzy_options.dart';
 
@@ -31,16 +31,18 @@ class Fuzzy<T> {
 
   /// Search for a given [pattern] on the [list], optionally [limit]ing the result length
   List<Result<T>> search(String pattern, [int limit = -1]) {
-    if (list.isEmpty) return <Result<T>>[];
+    if (list.isEmpty) {
+      return <Result<T>>[];
+    }
 
     // Return original list as [List<Result>] if pattern is empty
     if (pattern == '') {
       return list
-          .map((item) => Result<T>(
-                item: item,
-                matches: const [],
-                score: 0,
-              ))
+          .map(
+            (item) => Result<T>(
+              item: item,
+            ),
+          )
           .toList();
     }
 
@@ -56,7 +58,7 @@ class Fuzzy<T> {
     }
 
     if (limit > 0) {
-      return resultsAndWeights.results.sublist(0, limit);
+      return resultsAndWeights.results.take(limit).toList();
     }
 
     return resultsAndWeights.results;
@@ -70,7 +72,7 @@ class Fuzzy<T> {
       final tokens = pattern.split(options.tokenSeparator)
         ..removeWhere((token) => token.isEmpty)
         ..removeWhere((token) => token.length < options.minTokenCharLength);
-      for (var i = 0, len = tokens.length; i < len; i += 1) {
+      for (var i = 0; i < tokens.length; i += 1) {
         tokenSearchers.add(Bitap(tokens[i], options: options));
       }
     }
@@ -89,11 +91,10 @@ class Fuzzy<T> {
 
     // Check the first item in the list, if it's a string, then we assume
     // that every item in the list is also a string, and thus it's a flattened array.
-    if (list[0] is String) {
+    if (list.first is String) {
       // Iterate over every item
-      for (var i = 0, len = list.length; i < len; i += 1) {
+      for (var i = 0; i < list.length; i += 1) {
         _analyze(
-          key: '',
           value: list[i].toString().trim(),
           record: list[i],
           index: i,
@@ -110,7 +111,7 @@ class Fuzzy<T> {
     // Otherwise, the first item is an Object (hopefully), and thus the searching
     // is done on the values of the keys of each item.
     final weights = <String, double>{};
-    for (var i = 0, len = list.length; i < len; i += 1) {
+    for (var i = 0; i < list.length; i += 1) {
       final item = list[i];
       // Iterate over every key
       for (var j = 0; j < options.keys.length; j += 1) {
@@ -137,12 +138,12 @@ class Fuzzy<T> {
   }
 
   List<Result<T>> _analyze({
-    String key = '',
     required String value,
     required T record,
     required int index,
-    List<Bitap> tokenSearchers = const [],
     required Bitap fullSearcher,
+    String key = '',
+    List<Bitap> tokenSearchers = const [],
     List<Result<T>> results = const [],
     Map<int, Result<T>> resultMap = const {},
   }) {
@@ -155,11 +156,11 @@ class Fuzzy<T> {
     var averageScore = -1.0;
     var numTextMatches = 0;
 
-    final mainSearchResult = fullSearcher.search(value.toString());
-    _log('Full text: "${value}", score: ${mainSearchResult.score}');
+    final mainSearchResult = fullSearcher.search(value);
+    _log('Full text: "$value", score: ${mainSearchResult.score}');
 
     if (options.tokenize) {
-      final words = value.toString().split(options.tokenSeparator);
+      final words = value.split(options.tokenSeparator);
       final scores = <double>[];
 
       for (var i = 0; i < tokenSearchers.length; i += 1) {
@@ -181,7 +182,7 @@ class Fuzzy<T> {
               scores.add(1);
             }
           }
-          _log('Token: "${word}", score: ${tokenSearchResult.score}');
+          _log('Token: "$word", score: ${tokenSearchResult.score}');
         }
 
         if (hasMatchInText) {
@@ -202,11 +203,12 @@ class Fuzzy<T> {
 
     _log('Score average (final): $finalScore');
 
-    final checkTextMatches = (options.tokenize && options.matchAllTokens)
-        ? numTextMatches >= tokenSearchers.length
-        : true;
+    bool checkTextMatches = true;
+    if (options.tokenize && options.matchAllTokens) {
+      checkTextMatches = numTextMatches >= tokenSearchers.length;
+    }
 
-    _log('\nCheck Matches: ${checkTextMatches}');
+    _log('\nCheck Matches: $checkTextMatches');
 
     // If a match is found, add the item to <rawResults>, including its score
     if ((exists || mainSearchResult.isMatch) && checkTextMatches) {
@@ -215,13 +217,15 @@ class Fuzzy<T> {
       if (existingResult != null) {
         // Use the lowest score
         // existingResult.score, bitapResult.score
-        existingResult.matches.add(ResultDetails<T>(
-          key: key,
-          arrayIndex: index,
-          value: value,
-          score: finalScore,
-          matchedIndices: mainSearchResult.matchedIndices,
-        ));
+        existingResult.matches.add(
+          ResultDetails<T>(
+            key: key,
+            arrayIndex: index,
+            value: value,
+            score: finalScore,
+            matchedIndices: mainSearchResult.matchedIndices,
+          ),
+        );
       } else {
         // Add it to the raw result list
         final res = Result(
@@ -261,22 +265,26 @@ class Fuzzy<T> {
   }
 
   void _computeScoreNoWeights(List<Result<T>> results) {
-    for (var i = 0, len = results.length; i < len; i += 1) {
+    for (var i = 0; i < results.length; i += 1) {
       final matches = results[i].matches;
-      var bestScore = matches.map((m) => m.score).fold<double>(
-          1.0, (previousValue, element) => min(previousValue, element));
+      final bestScore = matches.map((m) => m.score).fold<double>(
+            1,
+            (previousValue, element) => min(previousValue, element),
+          );
       results[i].score = bestScore;
     }
   }
 
   void _computeScoreWithWeights(
-      Map<String, double> weights, List<Result<T>> results) {
-    for (var i = 0, len = results.length; i < len; i += 1) {
+    Map<String, double> weights,
+    List<Result<T>> results,
+  ) {
+    for (var i = 0; i < results.length; i += 1) {
       var currScore = 1.0;
 
-      for (var match in results[i].matches) {
-        var weight = weights[match.key];
-        assert(weight != null);
+      for (final match in results[i].matches) {
+        final weight = weights[match.key];
+        assert(weight != null, 'weights bad');
 
         // We don't use 0 so that the weight differences don't get zeroed out
         final score = match.score == 0.0 ? 0.001 : match.score;
